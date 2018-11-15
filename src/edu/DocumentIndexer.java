@@ -247,7 +247,7 @@ public class DocumentIndexer {
         //returns top K=10 results 
         int topK = 10;
 
-        while ((results.size() < topK + 1) && queue.size() > 0) {
+        while ((results.size() < topK ) && queue.size() > 0) {
 
             results.add(queue.poll());  //gets the posting acc pair and returns only posting
 
