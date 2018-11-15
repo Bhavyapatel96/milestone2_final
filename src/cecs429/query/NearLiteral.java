@@ -124,8 +124,8 @@ public class NearLiteral implements QueryComponent {
         return true;
     }
 
-    @Override
+    /*@Override
     public List<Posting> getPosting_noPositions(DiskPositionalIndex d) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    }*/
 }

@@ -188,7 +188,12 @@ public class DocumentIndexer {
 
         List<Posting> postings = new ArrayList<>();
         List<Doc_accum> results = new ArrayList<>();
-
+        /*
+        BooleanQueryParser bParser = new BooleanQueryParser();
+        QueryComponent qComponent = bParser.parseQuery(query);
+        postings = qComponent.getPostings(disk_posIndex);
+        */
+        
         String[] query_array = query.split("\\s+");
 
         for (String term : query_array) {

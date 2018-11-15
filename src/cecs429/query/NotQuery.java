@@ -49,7 +49,7 @@ public class NotQuery implements QueryComponent {
         List<Posting> results = new ArrayList<>();
         List<Posting> p0 = new ArrayList<>();
 
-       p0 = mTerms.get(0).getPosting_noPositions(d);
+       p0 = mTerms.get(0).getPostings(d);
 
         results = p0;
 
@@ -70,9 +70,9 @@ public class NotQuery implements QueryComponent {
         return false;
     }
 
-    @Override
+   /* @Override
     public List<Posting> getPosting_noPositions(DiskPositionalIndex d) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    }*/
 
 }

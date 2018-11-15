@@ -244,9 +244,9 @@ public class PhraseLiteral implements QueryComponent {
     public Boolean Component() {
         return true;
     }
-
+/*
     @Override
     public List<Posting> getPosting_noPositions(DiskPositionalIndex d) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    }*/
 }

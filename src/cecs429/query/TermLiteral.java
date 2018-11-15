@@ -52,7 +52,7 @@ public class TermLiteral implements QueryComponent {
 
     }
 
-    @Override
+  /*  @Override
     public List<Posting> getPosting_noPositions(DiskPositionalIndex d) {
         TokenProcessor processor = new NewTokenProcessor();
         List<String> queries = new ArrayList();
@@ -70,7 +70,7 @@ public class TermLiteral implements QueryComponent {
         return d.getPosting_noPos(queries.get(0)); //for hypens only care about first item in queries
 
     }
-    
+    */
 
     @Override
     public String toString() {

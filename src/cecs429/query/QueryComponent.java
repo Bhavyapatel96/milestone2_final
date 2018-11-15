@@ -22,7 +22,7 @@ public interface QueryComponent {
 
     List<Posting> getPostings(DiskPositionalIndex d);
     
-    List<Posting> getPosting_noPositions(DiskPositionalIndex d);
+    //List<Posting> getPosting_noPositions(DiskPositionalIndex d);
 
     Boolean Component();
 
