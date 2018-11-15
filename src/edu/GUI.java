@@ -470,7 +470,18 @@ public class GUI extends javax.swing.JFrame {
 
         if (directoryChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             DirectoryDialogBox.dispose();
-            JOptionPane.showOptionDialog(indexingCorpusMessage, "Indexing corpus please wait", "Indexing Corpus", javax.swing.JOptionPane.DEFAULT_OPTION, javax.swing.JOptionPane.INFORMATION_MESSAGE, null, null, null);
+            Object[] options = {"Build Index", "Query Index"};
+            int option = JOptionPane.showOptionDialog(indexingCorpusMessage,
+                    "Select a mode",
+                    "Search Engine Mode",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE,
+                    null, //do not use a custom Icon
+                    options, //the titles of buttons
+                    options[1]); //default button title
+            //JOptionPane.showOptionDialog(indexingCorpusMessage, "Indexing corpus please wait", "Indexing Corpus", javax.swing.JOptionPane.DEFAULT_OPTION, javax.swing.JOptionPane.INFORMATION_MESSAGE, null, null, null);
+
+            
             this.setVisible(true);
             File file = directoryChooser.getSelectedFile();
             directoryPath = file.toPath();
@@ -478,7 +489,7 @@ public class GUI extends javax.swing.JFrame {
             //starts indexing 
             try {
 
-                DocumentIndexer.startIndexing(directoryPath);
+                DocumentIndexer.startIndexing(directoryPath, option);
 
             } catch (Exception ex) {
                 System.out.println("Problem with DocumentIndexer.startIndexing(directoryPath)");
