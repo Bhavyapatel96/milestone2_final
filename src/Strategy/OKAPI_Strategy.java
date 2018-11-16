@@ -46,7 +46,8 @@ public class OKAPI_Strategy implements StrategyInterface{
             double numerator = 2.2 * t_fd;
             double docLength_d = index.getDocLength_D(docID); //need to read these two values from docweights
             double docLength_a = index.getDocLength_A();
-            double denominator = 1.2 * (0.25 + (0.75 * (docLength_d/docLength_a)) + t_fd);
+            double x=docLength_d/docLength_a;
+            double denominator = 1.2 * (0.25 + (0.75*x) ) + t_fd;
             wdt= (numerator/denominator);
         } catch (IOException ex) {
             Logger.getLogger(OKAPI_Strategy.class.getName()).log(Level.SEVERE, null, ex);

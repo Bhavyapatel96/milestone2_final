@@ -209,7 +209,7 @@ public class DocumentIndexer {
                 //System.out.println("w_qt " + w_qt); 
                 double accum = 0;
                 double w_dt = strategy.get_wdt(t_fd, disk_posIndex, p.getDocumentId());
-                //System.out.println("w_dt " + w_dt); 
+                System.out.println("w_dt " + w_dt + "doc id: " + p.getDocumentId()); 
 
                 //pairs (Ranked_posting, accumulator factor)
                 if (postingMap.containsKey(p.getDocumentId())) {
@@ -234,7 +234,8 @@ public class DocumentIndexer {
                 double l_d = strategy.calculate_Ld(disk_posIndex, doc_temp.getPosting().getDocumentId());
                 //double l_d = disk_posIndex.getL_d(p); 
                 //System.out.println("accum before division for docId: "+ p + " is: " + accum);
-                //System.out.println("Ld: " + l_d); 
+                
+                System.out.println("Ld: " + l_d + "doc: " + doc_temp.getPosting().getDocumentId()); 
                 accum /= l_d;
                 doc_temp.setAccumulator(accum);
                 //System.out.println("final accum for docId: "+ p + " is: " + accum + "\n");
@@ -280,7 +281,8 @@ public class DocumentIndexer {
                 if (queryMode) {
                     corpus.getDocument(p.getPosting().getDocumentId()).getContent();
                 }
-                docInfo = corpus.getDocument(p.getPosting().getDocumentId()).getTitle();
+              //  docInfo = corpus.getDocument(p.getPosting().getDocumentId()).getTitle();
+                docInfo = corpus.getDocument(p.getPosting().getDocumentId()).getFileName().toString();
                 docInfo += " " + p.getAccumulator(); 
                 GUI.JListModel.addElement(docInfo);
 
@@ -382,7 +384,7 @@ public class DocumentIndexer {
             //bytesize=filesize
             Doc_length.add(doc_weight);
             Doc_length.add(avg_tftd);
-            Doc_length.add(doc_length);
+            Doc_length.add(doc_tokens);
             Doc_length.add(Filesize);
         }
         Doc_length.add(token_count/N);
