@@ -6,17 +6,20 @@
 package cecs429.index;
 
 /**
- * Creates a document and accumulator pair.
- * Used to retrieve the top K documents in ranked query mode
+ * Creates a document and accumulator pair. Used to retrieve the top K documents
+ * in ranked query mode Overrides compareTo to enable comparisons on
+ * accumulators.
+ *
  * @author dayanarios
  */
-public class Doc_accum  implements Comparable<Doc_accum>{
-    double accumulator; 
-    Posting posting; 
-    
-    public Doc_accum(Posting p, double acc){
-        this.accumulator = acc; 
-        this.posting = p; 
+public class Doc_accum implements Comparable<Doc_accum> {
+
+    double accumulator;
+    Posting posting;
+
+    public Doc_accum(Posting p, double acc) {
+        this.accumulator = acc;
+        this.posting = p;
     }
 
     public double getAccumulator() {
@@ -26,7 +29,7 @@ public class Doc_accum  implements Comparable<Doc_accum>{
     public void setAccumulator(double accumulator) {
         this.accumulator = accumulator;
     }
-    
+
     public void increaseAccumulator(double accumulator) {
         this.accumulator += accumulator;
     }
@@ -50,7 +53,5 @@ public class Doc_accum  implements Comparable<Doc_accum>{
             return 0;
         }
     }
-    
-    
-    
+
 }

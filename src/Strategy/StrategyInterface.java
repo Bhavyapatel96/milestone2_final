@@ -9,11 +9,15 @@ import cecs429.index.DiskPositionalIndex;
 import java.util.HashMap;
 
 /**
+ * Interface for variant tf-idf formulas
  *
  * @author bhavy
  */
 public interface StrategyInterface {
+
     public double calculate_wqt(double N, double dft);
+
     public double calculate_Ld(DiskPositionalIndex index, int docId);
+
     public double get_wdt(double t_fd, DiskPositionalIndex index, int docID);
 }

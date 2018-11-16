@@ -49,20 +49,20 @@ public class DocumentIndexer {
     protected static List<Posting> postings = new ArrayList<>();
     protected static Boolean clickList = false;  //prevents clicking the list when there is nothing to click
     protected static Boolean booleanMode = true; //indicates which mode the search engine should run in
-    protected static Boolean rankedMode = false; 
-    protected static Boolean queryMode = true; 
-    protected static Boolean buildMode = false; 
+    protected static Boolean rankedMode = false;
+    protected static Boolean queryMode = true;
+    protected static Boolean buildMode = false;
     private int topK = 10; //search engine always returns the top K = 10 docs
     private static double N = 0; //corpus size
-    private static String path; 
-    protected static int rankedOption = 0; 
+    private static String path;
+    protected static int rankedOption = 0;
     private static DiskPositionalIndex Disk_posIndex;
     private static DiskIndexWriter diskWriter = new DiskIndexWriter();
-    
-    
+
     /**
      * Indexes the corpus given by the path parameter, records the time it takes
-     * to index.
+     * to index. Search Engine supports two modes: query index and build index
+     * Additional runs two different retrievals: boolean and ranked
      *
      * @param path supplied by user in
      * GUI.SearchDirectoriesButtonActionPerformed
@@ -75,8 +75,8 @@ public class DocumentIndexer {
         corpus = DirectoryCorpus.loadJsonTextDirectory(p.toAbsolutePath(), ".json");
 
         if (option == 0) { //build index
-            buildMode = true; 
-            queryMode = false; 
+            buildMode = true;
+            queryMode = false;
             long startTime = System.nanoTime();
             Index index = posindexCorpus(corpus);
             diskWriter.WriteIndex(index, path);
@@ -88,8 +88,8 @@ public class DocumentIndexer {
             GUI.ResultsLabel.setText("Total Indexing Time: " + new DecimalFormat("##.##").format(seconds) + " seconds");
 
         } else { //query index
-            buildMode = false; 
-            queryMode = true; 
+            buildMode = false;
+            queryMode = true;
             Disk_posIndex = new DiskPositionalIndex(path);
             corpus.getDocuments();
             N = corpus.getCorpusSize();
@@ -97,42 +97,34 @@ public class DocumentIndexer {
 
     }
 
-
-    
     protected static void startSearchEngine() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
-       
-        
-        if (booleanMode){
-            BooleanQueryMode(diskWriter, Disk_posIndex); 
+
+        if (booleanMode) {
+            BooleanQueryMode(diskWriter, Disk_posIndex);
+        } else {
+
+            RankedQueryMode(diskWriter, Disk_posIndex);
         }
-        else{
-            
-            RankedQueryMode(diskWriter, Disk_posIndex); 
-        }
-            
-        
+
     }
 
-    
     /**
-     * Runs the search engine in Boolean Query Mode.
-     * Checks for the existence of special queries.
-     * Ensures the list is cleared after every new search query.
-     * Displays any relevant result in the GUI's result label.
+     * Runs the search engine in Boolean Query Mode. Checks for the existence of
+     * special queries. Ensures the list is cleared after every new search
+     * query. Displays any relevant result in the GUI's result label.
      *
      * @throws ClassNotFoundException
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    private static void BooleanQueryMode(DiskIndexWriter diskWriter, DiskPositionalIndex disk_posIndex) throws ClassNotFoundException, InstantiationException, IllegalAccessException{
+    private static void BooleanQueryMode(DiskIndexWriter diskWriter, DiskPositionalIndex disk_posIndex) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
         if (!specialQueries(query)) {
             //newCorpus = false; 
             BooleanQueryParser bParser = new BooleanQueryParser();
             QueryComponent qComponent = bParser.parseQuery(query);
             postings = qComponent.getPostings(disk_posIndex);
 
-            if (postings.isEmpty()) 
-            {
+            if (postings.isEmpty()) {
                 GUI.JListModel.clear();
                 GUI.ResultsLabel.setText("");
                 clickList = false;
@@ -150,7 +142,7 @@ public class DocumentIndexer {
                 GUI.ResultsLabel.setText("");
 
                 for (Posting p : postings) {
-                    if(queryMode){
+                    if (queryMode) {
                         corpus.getDocument(p.getDocumentId()).getContent();
                     }
                     docInfo = corpus.getDocument(p.getDocumentId()).getTitle();
@@ -166,21 +158,21 @@ public class DocumentIndexer {
         GUI.SearchBarTextField.selectAll();
 
     }
-    
+
     /**
-     * Processes a query without any Boolean operators and returns the top 
-     * K=10 documents satisfying the query. 
+     * Processes a query without any Boolean operators and returns the top K=10
+     * documents satisfying the query.
      */
-    private static void RankedQueryMode(DiskIndexWriter diskWriter, DiskPositionalIndex disk_posIndex) throws IOException{
+    private static void RankedQueryMode(DiskIndexWriter diskWriter, DiskPositionalIndex disk_posIndex) throws IOException {
 
         if (query.equals("q")) {
 
             System.exit(0);
         }
-        
+
         StrategyFactory sf = new StrategyFactory();
         StrategyInterface strategy = sf.execute(rankedOption);
-        
+
         //maps postings to accumulator value
         HashMap<Integer, Doc_accum> postingMap = new HashMap<Integer, Doc_accum>();
 
@@ -188,12 +180,7 @@ public class DocumentIndexer {
 
         List<Posting> postings = new ArrayList<>();
         List<Doc_accum> results = new ArrayList<>();
-        /*
-        BooleanQueryParser bParser = new BooleanQueryParser();
-        QueryComponent qComponent = bParser.parseQuery(query);
-        postings = qComponent.getPostings(disk_posIndex);
-        */
-        
+
         String[] query_array = query.split("\\s+");
 
         for (String term : query_array) {
@@ -201,15 +188,14 @@ public class DocumentIndexer {
             postings = disk_posIndex.getPosting_noPos(term);
             for (Posting p : postings) { //for each document in the postings list
                 //System.out.println("docID: " + p.getDocumentId());
-                double t_fd = p.getT_fd(); 
+                double t_fd = p.getT_fd();
                 //System.out.println("t_fd " + t_fd); 
-                double d_ft = p.getD_ft(); 
+                double d_ft = p.getD_ft();
                 //System.out.println("d_ft " + d_ft); 
                 double w_qt = strategy.calculate_wqt(N, d_ft);
                 //System.out.println("w_qt " + w_qt); 
                 double accum = 0;
                 double w_dt = strategy.get_wdt(t_fd, disk_posIndex, p.getDocumentId());
-                System.out.println("w_dt " + w_dt + "doc id: " + p.getDocumentId()); 
 
                 //pairs (Ranked_posting, accumulator factor)
                 if (postingMap.containsKey(p.getDocumentId())) {
@@ -234,8 +220,7 @@ public class DocumentIndexer {
                 double l_d = strategy.calculate_Ld(disk_posIndex, doc_temp.getPosting().getDocumentId());
                 //double l_d = disk_posIndex.getL_d(p); 
                 //System.out.println("accum before division for docId: "+ p + " is: " + accum);
-                
-                System.out.println("Ld: " + l_d + "doc: " + doc_temp.getPosting().getDocumentId()); 
+
                 accum /= l_d;
                 doc_temp.setAccumulator(accum);
                 //System.out.println("final accum for docId: "+ p + " is: " + accum + "\n");
@@ -248,19 +233,18 @@ public class DocumentIndexer {
         //returns top K=10 results 
         int topK = 10;
 
-        while ((results.size() < topK ) && queue.size() > 0) {
+        while ((results.size() < topK) && queue.size() > 0) {
 
             results.add(queue.poll());  //gets the posting acc pair and returns only posting
 
         }
 
-        display_RankedResults(results); 
-        
+        display_RankedResults(results);
+
     }
-    
-    public static void display_RankedResults(List<Doc_accum> results){
-        if (results.isEmpty()) 
-        {
+
+    public static void display_RankedResults(List<Doc_accum> results) {
+        if (results.isEmpty()) {
             GUI.JListModel.clear();
             GUI.ResultsLabel.setText("");
             clickList = false;
@@ -281,23 +265,19 @@ public class DocumentIndexer {
                 if (queryMode) {
                     corpus.getDocument(p.getPosting().getDocumentId()).getContent();
                 }
-              //  docInfo = corpus.getDocument(p.getPosting().getDocumentId()).getTitle();
-                docInfo = corpus.getDocument(p.getPosting().getDocumentId()).getFileName().toString();
-                docInfo += " " + p.getAccumulator(); 
+                docInfo = corpus.getDocument(p.getPosting().getDocumentId()).getTitle();
+                //docInfo = corpus.getDocument(p.getPosting().getDocumentId()).getFileName().toString();
+                docInfo += " " + p.getAccumulator();
                 GUI.JListModel.addElement(docInfo);
 
             }
             GUI.ResultsLabel.setText("Total Documents Found: " + results.size());
         }
 
-        
-
         //GUI.SearchBarTextField.setText("Enter a new search or 'q' to exit");
-        GUI.SearchBarTextField.selectAll ();
+        GUI.SearchBarTextField.selectAll();
     }
-    
-    
-    
+
     /**
      * Creates a positional inverted index Tokenizes all the terms found in each
      * document in the corpus
@@ -312,26 +292,26 @@ public class DocumentIndexer {
 
         NewTokenProcessor processor = new NewTokenProcessor();
         Iterable<Document> docs = corpus.getDocuments(); //call registerFileDocumentFactory first?
-        
+
         List<Double> Doc_length = new ArrayList<>();
         Positional_inverted_index index = new Positional_inverted_index();
-        
-        double token_count=0;
-        
+
+        double token_count = 0;
+
         // Iterate through the documents, and:
         for (Document d : docs) {
             //File f = new File(path + "\\" + d.getTitle());
-            File f=new File(path+"\\"+d.getFileName().toString());
-            double Filesize = f.length(); 
+            File f = new File(path + "\\" + d.getFileName().toString());
+            double Filesize = f.length();
             //edited by bhavya
-            double doc_weight=0; //first entry in docweights.bin
-            double doc_tokens=0;
-            double doc_length=0;
+            double doc_weight = 0; //first entry in docweights.bin
+            double doc_tokens = 0;
+            double doc_length = 0;
             HashMap<String, Integer> tftd = new HashMap<>();
             // Tokenize the document's content by constructing an EnglishTokenStream around the document's content.
             Reader reader = d.getContent();
             EnglishTokenStream stream = new EnglishTokenStream(reader); //can access tokens through this stream
-            N++; 
+            N++;
             // Iterate through the tokens in the document, processing them using a BasicTokenProcessor,
             //		and adding them to the HashSet vocabulary.
             Iterable<String> tokens = stream.getTokens();
@@ -343,10 +323,9 @@ public class DocumentIndexer {
                 List<String> word = new ArrayList<String>();
                 word = processor.processToken(token);
                 //System.out.println(word.get(0));
-                if (word.get(0).matches("")){
+                if (word.get(0).matches("")) {
                     continue;
-                }
-                else{
+                } else {
 
                     index.addTerm(word.get(0), i, d.getId());
 
@@ -369,16 +348,16 @@ public class DocumentIndexer {
             double length = 0;
             double wdt = 0;
             //calculate w(d,t)= 1 + ln(tft)
-            double total_tftd=0;
+            double total_tftd = 0;
             for (Map.Entry<String, Integer> entry : tftd.entrySet()) {
 
                 wdt = 1 + log(entry.getValue());
 
                 length = length + pow(wdt, 2);
-                total_tftd=total_tftd + entry.getValue();
+                total_tftd = total_tftd + entry.getValue();
             }
-            token_count=token_count+doc_tokens;
-            doc_weight=pow(length,0.5);
+            token_count = token_count + doc_tokens;
+            doc_weight = pow(length, 0.5);
             double avg_tftd = total_tftd / (double) tftd.size();
             //doclength = doc_tokens
             //bytesize=filesize
@@ -387,12 +366,11 @@ public class DocumentIndexer {
             Doc_length.add(doc_tokens);
             Doc_length.add(Filesize);
         }
-        Doc_length.add(token_count/N);
-        System.out.println("Total docs: "+ N);
-        System.out.println("Total tokens:" + token_count);
+        Doc_length.add(token_count / N);
+
         DiskIndexWriter d = new DiskIndexWriter();
         d.write_doc(path, Doc_length);
-       
+
         return index;
     }
 
@@ -440,7 +418,7 @@ public class DocumentIndexer {
             List<String> vocabList = Disk_posIndex.getVocabulary();
             GUI.JListModel.clear();
             GUI.ResultsLabel.setText("");
-            
+
             int vocabCount = 0;
             for (String v : vocabList) {
                 if (vocabCount < 1000) {

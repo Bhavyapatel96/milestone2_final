@@ -13,7 +13,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * Class that reads a positional inverted index to disk. Included methods read
+ * individual .bin files containing: docLenght A, docLength D, Ave(tftd), Ld
+ * Contains a function for binary searching the vocab on disk and retrieving 
+ * postings with and without positions.
  * @author bhavy
  */
 public class DiskPositionalIndex implements Index {
@@ -25,10 +28,11 @@ public class DiskPositionalIndex implements Index {
     File docWeights;
 
     private boolean Found = false;
-    
-    public DiskPositionalIndex(){}
-    
-    public DiskPositionalIndex(String path){
+
+    public DiskPositionalIndex() {
+    }
+
+    public DiskPositionalIndex(String path) {
         this.vocTable = new File(path + "\\Index\\VocabTable.bin");
         this.vocab = new File(path + "\\Index\\vocab.bin");
         this.postings = new File(path + "\\Index\\Postings.bin");
@@ -37,10 +41,10 @@ public class DiskPositionalIndex implements Index {
 
     @Override
     public List<Posting> getPositional_posting(String term) {
-            List<Posting> res = new ArrayList<>();
-            
+        List<Posting> res = new ArrayList<>();
+
         try {
-            
+
             long postingsposition = binarysearch(term); //returns position of term in postings.bin
             InputStream p = new FileInputStream(postings);
             //BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(postings),"UTF-8"));
@@ -58,128 +62,106 @@ public class DiskPositionalIndex implements Index {
                     for (int j = 0; j < termfreq; j++) {
                         positions.add(pos.readInt());
                     }
-                    if(i==0){
-                    Posting p1=new Posting(docID.get(i), positions.get(0));
-                    res.add(p1);
-                    for(int x=1;x<positions.size();x++){
-                       
-                        positions.set(x, positions.get(x)+positions.get(x-1));
-                        p1.addPosition(positions.get(x));
-                        
-                      
+                    if (i == 0) {
+                        Posting p1 = new Posting(docID.get(i), positions.get(0));
+                        res.add(p1);
+                        for (int x = 1; x < positions.size(); x++) {
+
+                            positions.set(x, positions.get(x) + positions.get(x - 1));
+                            p1.addPosition(positions.get(x));
+
+                        }
+
+                        positions.clear();
+                    } else {
+                        docID.set(i, docID.get(i) + docID.get(i - 1));
+                        Posting p1 = new Posting(docID.get(i), positions.get(0));
+                        res.add(p1);
+                        for (int x = 1; x < positions.size(); x++) {
+
+                            positions.set(x, positions.get(x) + positions.get(x - 1));
+                            p1.addPosition(positions.get(x));
+
+                        }
+
+                        positions.clear();
                     }
-                    
-                    positions.clear();
-                    }
-                    else{
-                    docID.set(i, docID.get(i) + docID.get(i-1));
-                    Posting p1=new Posting(docID.get(i),positions.get(0));
-                    res.add(p1);
-                    for(int x=1;x<positions.size();x++){
-                       
-                        positions.set(x, positions.get(x)+positions.get(x-1));
-                        p1.addPosition(positions.get(x));
-                        
-                      
-                    }
-                    
-                    positions.clear();
-                    }
-                    
-                    
+
                 }
-                
+
             } else {
                 res.clear();
             }
             p.close();
             pos.close();
-            
-    
+
         } catch (IOException ex) {
             Logger.getLogger(DiskPositionalIndex.class.getName()).log(Level.SEVERE, null, ex);
         }
         return res;
     }
-    
+
     @Override
-    public List<Posting> getPosting_noPos(String term){
+    public List<Posting> getPosting_noPos(String term) {
         List<Posting> results = new ArrayList<>();
         try {
-            
+
             long postingsposition = binarysearch(term); //returns position of term in postings.bin
             InputStream p = new FileInputStream(postings);
             RandomAccessFile pos = new RandomAccessFile(postings, "r");
             List<Integer> docID = new ArrayList<>();
             List<Integer> positions = new ArrayList<>();
-            
+
             if (Found == true) {
-                //System.out.println(pos.getFilePointer());
+
                 pos.seek(postingsposition);
-                //System.out.println(pos.getFilePointer());
+
                 int docFreq = pos.readInt();
                 for (int i = 0; i < docFreq; i++) {
                     docID.add(pos.readInt());
-                    //System.out.println("file pointer before reading term freq: " + pos.getFilePointer());
+
                     int termfreq = pos.readInt();
-                    //System.out.println("file pointer before skipping: " + pos.getFilePointer());
-                    //System.out.println("term freq: " + termfreq);
-                    //int bytesSkipped = pos.skipBytes(termfreq);
-                    //ong b_skipped = (long) bytesSkipped; 
-                    pos.seek(pos.getFilePointer() + termfreq*4);
-                    
-                    //System.out.println("file pointer after skipping: " + pos.getFilePointer());
-                    /*
-                    while(bytesSkipped != termfreq){ //skip over positions
-                        if (bytesSkipped < 0){
-                            System.out.println("Error in reading bytes for ranked posting"); 
-                            break; 
-                        } 
-                        int bytes_missed = termfreq - bytesSkipped; 
-                        bytesSkipped+= bytes_missed; 
-                    }
-                    */
-                    if(i == 0){
-                        results.add(new Posting(docID.get(i), (double)docFreq, (double)termfreq));
-                    }
-                    else {
+
+                    pos.seek(pos.getFilePointer() + termfreq * 4);
+
+                    if (i == 0) {
+                        results.add(new Posting(docID.get(i), (double) docFreq, (double) termfreq));
+                    } else {
                         docID.set(i, docID.get(i) + docID.get(i - 1));
                         results.add(new Posting(docID.get(i), (double) docFreq, (double) termfreq));
                     }
-                   
+
                 }
-            } 
-            else {
+            } else {
                 results.clear();
             }
             p.close();
             pos.close();
-   
+
         } catch (IOException ex) {
             Logger.getLogger(DiskPositionalIndex.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         return results;
     }
-    
 
-    public double getL_d(int docId) throws FileNotFoundException, IOException{
+    public double getL_d(int docId) throws FileNotFoundException, IOException {
         //System.out.println(docId); 
         FileInputStream i = new FileInputStream(docWeights);
         RandomAccessFile ram = new RandomAccessFile(docWeights, "r");
         long docid = (long) docId;
         //System.out.println(docid); 
-        ram.seek((docid) * (8*4));
+        ram.seek((docid) * (8 * 4));
         //System.out.println(ram.readDouble());
         double L_d = ram.readDouble();
         //System.out.println(L_d); 
         i.close();
         ram.close();
-        
-        return L_d; 
-        
+
+        return L_d;
+
     }
-    
+
     public double getDocLength_D(int docId) throws FileNotFoundException, IOException {
         //System.out.println(docId); 
         FileInputStream i = new FileInputStream(docWeights);
@@ -195,8 +177,8 @@ public class DiskPositionalIndex implements Index {
 
         return DocLength_D;
 
-    }    
-    
+    }
+
     public double getDocLength_A() throws FileNotFoundException, IOException {
         //System.out.println(docId); 
         FileInputStream i = new FileInputStream(docWeights);
@@ -212,7 +194,7 @@ public class DiskPositionalIndex implements Index {
         return DocLength_A;
 
     }
-    
+
     public double getByteSize(int docId) throws FileNotFoundException, IOException {
         //System.out.println(docId); 
         FileInputStream i = new FileInputStream(docWeights);
@@ -229,7 +211,7 @@ public class DiskPositionalIndex implements Index {
         return ByteSize;
 
     }
-    
+
     public double getAve(int docId) throws FileNotFoundException, IOException {
         //System.out.println(docId); 
         FileInputStream i = new FileInputStream(docWeights);
@@ -263,17 +245,17 @@ public class DiskPositionalIndex implements Index {
         }
 
         String term = "";
-        long current =0;
+        long current = 0;
         long next;
-        boolean firstPass = true; 
+        boolean firstPass = true;
 
         while (true) {
             try {
-                if(firstPass){
+                if (firstPass) {
                     current = vt.readLong(); //give starting position of term
-                    firstPass = false; 
+                    firstPass = false;
                 }
-                
+
                 vt.readLong(); //skips over posting list
 
                 next = vt.readLong();
@@ -286,7 +268,7 @@ public class DiskPositionalIndex implements Index {
 
                 term = v.readUTF();
                 results.add(term);
-                current = next; 
+                current = next;
             } catch (EOFException e) {
                 break;
             } catch (IOException ex) {
@@ -298,10 +280,9 @@ public class DiskPositionalIndex implements Index {
         return results;
     }
 
-
     public long binarysearch(String term) throws FileNotFoundException, IOException {
 
-       // InputStream f = new FileInputStream(vocab);
+        // InputStream f = new FileInputStream(vocab);
         RandomAccessFile vt = new RandomAccessFile(vocTable, "r");
         RandomAccessFile v = new RandomAccessFile(vocab, "r");
         long result = 0;
@@ -314,72 +295,36 @@ public class DiskPositionalIndex implements Index {
         while (i < j) {
 
             m = (i + j) / 2;
-            
+
             String s2 = "";
-            //go to vocabtable position m
-            // System.out.println(vt.getFilePointer());
-            vt.seek((m-1) * 16);
-            //System.out.println(vt.getFilePointer());
+            //go to vocabtable position m 
+            vt.seek((m - 1) * 16);
+
             long current = vt.readLong(); //gives decimal value of hexadecimal value in vocabtable
-            //System.out.println(vt.getFilePointer());
-            //vt.readLong();
-            //System.out.println(vt.getFilePointer());
-          //  long next = vt.readLong();
-            //System.out.println(vt.getFilePointer());
 
-            //length of the string
-           // long k = next - current;
-
-            //vocab.bin at pos m
-            //System.out.println(v.getFilePointer());
             v.seek(current);
-           /*ByteArrayOutputStream out=new ByteArrayOutputStream((int)k+5);
-           byte[] buffer=new byte[(int)k];
-           
-           for(int length; (length=v.read(buffer))!=-1;){
-               
-               out.write(buffer, 0, length);
-           }
-           s2=new String(out.toByteArray(),"UTF-8");
-           String s3=s2.substring(0, (int)(k));*/
-           
-            s2=v.readUTF();
-        //   System.out.println(s3);
-           // System.out.println(v.getFilePointer());
-/*            while (k > 0) {
-                
-                
 
-                s2 = s2 + (char) (v.readUnsignedByte());
-                //System.out.println(v.getFilePointer());
-               
-                //s2=s2+v.readChar();
-                //System.out.print((char)(v.readByte()));
-                k--;
+            s2 = v.readUTF();
 
-            }
-  */          
-            
-          //  System.out.println("String at pos m is " + s2);
             if (term.compareTo(s2) == 0) {
 
                 System.out.println("Found");
                 Found = true;
-               // vt.seek(m * 16);
-                vt.seek((m-1)*16);
-                long x=vt.readLong();
-               // System.out.println(x);
-                x=vt.readLong();
-                //System.out.println(x);
-                
+                // vt.seek(m * 16);
+                vt.seek((m - 1) * 16);
+                long x = vt.readLong();
+                x = vt.readLong();
+
                 result = x;
                 break;
             } else if (term.compareTo(s2) < 0) {
-                //term<s2
                 j = m;
             } else {
-                if((j-i)==1){
-                    Found=false;result=0;break;}
+                if ((j - i) == 1) {
+                    Found = false;
+                    result = 0;
+                    break;
+                }
                 i = m;
 
             }
@@ -387,6 +332,5 @@ public class DiskPositionalIndex implements Index {
         }
         return result;
     }
-    
-    
+
 }

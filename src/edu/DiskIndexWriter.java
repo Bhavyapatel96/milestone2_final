@@ -17,7 +17,9 @@ import java.lang.String;
 import java.nio.charset.StandardCharsets;
 
 /**
- *
+ * Writes a positional inverted index to disk. 
+ * Contains functions to write index, write docWeights, vocab table, and vocab
+ * Creates separate .bin files for each of above
  * @author bhavy
  */
 public class DiskIndexWriter {
@@ -36,29 +38,26 @@ public class DiskIndexWriter {
         posting_Pos = write_posting(index, path);  //posting_Pos contains position of each term in postings.bin
         write_vocabtable(vocabPositions, posting_Pos, path); //
 
-        //System.out.println(l1.indexOf(s1)); //gives position in vocab file. List array starts at 0 so if the answer is 2, it is 3rd word in vocabulary.
-        //System.out.println(vocabPositions.get(l1.indexOf(s1))); //gives position of that term in vocab.bin. if the word is at 480th position in vocabulary, look for 481st row in vocabTable.bin to get the starting position of word in vocab.bin and its position in postings.bin
-        
     }
-    public void write_doc(String p, List<Double> doclength) throws FileNotFoundException, IOException{
-    
-        path=p;
-        File f=new File(path+"\\Index\\docWeights.bin");
-        
+
+    public void write_doc(String p, List<Double> doclength) throws FileNotFoundException, IOException {
+
+        path = p;
+        File f = new File(path + "\\Index\\docWeights.bin");
+
         FileOutputStream out = new FileOutputStream(f);
         DataOutputStream d2 = new DataOutputStream(out);
-        for(int x=0 ;x < doclength.size();x++){
-           
-            
+        for (int x = 0; x < doclength.size(); x++) {
+
             d2.writeDouble(doclength.get(x));
             d2.flush();
-        //    System.out.println(doclength.get(x));
+
         }
         d2.close();
         out.close();
-        
-    
+
     }
+
     public void write_vocabtable(List<Long> vocab, List<Long> postings, String path) throws FileNotFoundException, IOException {
 
         File f1 = new File(path + "\\Index\\VocabTable.bin");
@@ -86,16 +85,10 @@ public class DiskIndexWriter {
         List<Integer> docfreq = new ArrayList<>();
         List<List<Integer>> termpositions = new ArrayList<>();
         List<Long> postings_position = new ArrayList<>();
-        List<Integer> termfreq=new ArrayList<>();
+        List<Integer> termfreq = new ArrayList<>();
         int entrysize = 0;
-        
+
         long sizeoffile = 0;
-        //<docfreq,
-        //          d1,termfrequency,
-        //                          positions
-        //          d2,termfrequency,
-        //                          positions
-        //size=4B for each value.
         while (j < l1.size()) {
 
             sizeoffile = out.getChannel().position();
@@ -111,15 +104,14 @@ public class DiskIndexWriter {
             }
 
             docfrequency = docfreq.size();
-            //  System.out.println("Doc freq " + docfrequency + "Number of positions " + termfreq + "Positions: " + termpositions);
 
             d1.writeInt(docfrequency);
             if (docfrequency == 1) {
                 d1.writeInt(docfreq.get(0));
                 d1.writeInt(termfreq.get(0));
                 d1.writeInt(termpositions.get(0).get(0));
-                for (int p = 1; p < termfreq.get(0) ; p++) {
-                    d1.writeInt(termpositions.get(0).get(p) - termpositions.get(0).get(p-1));
+                for (int p = 1; p < termfreq.get(0); p++) {
+                    d1.writeInt(termpositions.get(0).get(p) - termpositions.get(0).get(p - 1));
                 }
             } else {
                 d1.writeInt(docfreq.get(0));
@@ -141,11 +133,10 @@ public class DiskIndexWriter {
             }
 
             d1.flush();
-            docfreq.clear(); 
+            docfreq.clear();
             termpositions.clear();
             termfreq.clear();
             j++;
-            
 
         }
         d1.close();
@@ -157,40 +148,31 @@ public class DiskIndexWriter {
 
         l1 = index.getVocabulary();
         String filename = "\\Index\\vocab.bin";
-        
+
         //edit
-        File f=new File(path+filename);
+        File f = new File(path + filename);
         FileOutputStream fo = new FileOutputStream(f);
-        OutputStreamWriter osw= new OutputStreamWriter(fo,"UTF-8");
-        
-        BufferedWriter out=new BufferedWriter(osw);
-        RandomAccessFile r=new RandomAccessFile(f, "rw");
-        
-        //
-       // FileWriter w1 = new FileWriter(path + filename);
-        
-        //BufferedWriter b1 = new BufferedWriter(w1);
+        OutputStreamWriter osw = new OutputStreamWriter(fo, "UTF-8");
+
+        BufferedWriter out = new BufferedWriter(osw);
+        RandomAccessFile r = new RandomAccessFile(f, "rw");
+
         int i = 0;
         long position = 0;
         int numberofdocs = 0;
         List<Long> positionsoftermsinvocabbin = new ArrayList<>();
         while (i < l1.size()) {
-           // System.out.println(l1.get(i));
-            //b1.write(l1.get(i));
-            
+
             r.writeUTF(l1.get(i));
-            //out.append(l1.get(i));
+
             positionsoftermsinvocabbin.add(position);
-            //    vocabtablemap.put(i, i)
-            //position = (int) (position + f.length());
+
             position = r.getFilePointer();
             i++;
             out.flush();
         }
         out.close();
-        //System.out.println(positionsoftermsinvocabbin);
-        //b1.close();
-        //w1.close();
+
         return positionsoftermsinvocabbin;
     }
 

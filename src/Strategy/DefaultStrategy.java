@@ -19,6 +19,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * Calculates default strategy from variant tf-idf formulas. Respective
+ * functions calculate wqt, wdt, Ld
  *
  * @author bhavy
  */
@@ -27,32 +29,27 @@ public class DefaultStrategy implements StrategyInterface {
     double wdt;
     double length;
     double doclength;
-    
+
     @Override
     public double calculate_wqt(double N, double dft) {
         return log(1 + (N / dft));
     }
 
-    
-    
     @Override
     public double calculate_Ld(DiskPositionalIndex index, int docId) {
         try {
-            doclength=index.getL_d(docId);
+            doclength = index.getL_d(docId);
         } catch (IOException ex) {
             Logger.getLogger(DefaultStrategy.class.getName()).log(Level.SEVERE, null, ex);
         }
         return doclength;
     }
-    
-    
 
     @Override
     public double get_wdt(double t_fd, DiskPositionalIndex index, int docID) {
         wdt = 1 + log(t_fd);
         return wdt;
-        
+
     }
-    
-    
+
 }

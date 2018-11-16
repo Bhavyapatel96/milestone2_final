@@ -16,42 +16,43 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * Calculates Okapi BM25 strategy from variant tf-idf formulas. Respective
+ * functions calculate wqt, wdt, Ld
  *
  * @author bhavy
  */
-public class OKAPI_Strategy implements StrategyInterface{
+public class OKAPI_Strategy implements StrategyInterface {
 
-    double wdt=0;
-    double length=0;
-    double doclength=0;
-    
+    double wdt = 0;
+    double length = 0;
+    double doclength = 0;
+
     @Override
     public double calculate_wqt(double N, double dft) {
-        double numerator = N - dft + 0.5; 
-        double denominator = dft + 0.5; 
-        double rs = log((numerator/denominator));
+        double numerator = N - dft + 0.5;
+        double denominator = dft + 0.5;
+        double rs = log((numerator / denominator));
         return max(0.1, rs);
     }
 
-    
     @Override
     public double calculate_Ld(DiskPositionalIndex index, int docId) {
-        doclength=1;
+        doclength = 1;
         return doclength;
     }
 
-     @Override
+    @Override
     public double get_wdt(double t_fd, DiskPositionalIndex index, int docID) {
         try {
             double numerator = 2.2 * t_fd;
             double docLength_d = index.getDocLength_D(docID); //need to read these two values from docweights
             double docLength_a = index.getDocLength_A();
-            double x=docLength_d/docLength_a;
-            double denominator = 1.2 * (0.25 + (0.75*x) ) + t_fd;
-            wdt= (numerator/denominator);
+            double x = docLength_d / docLength_a;
+            double denominator = 1.2 * (0.25 + (0.75 * x)) + t_fd;
+            wdt = (numerator / denominator);
         } catch (IOException ex) {
             Logger.getLogger(OKAPI_Strategy.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return wdt; 
+        return wdt;
     }
 }

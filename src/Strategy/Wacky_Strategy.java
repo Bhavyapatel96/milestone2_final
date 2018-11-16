@@ -17,47 +17,49 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
+ * Calculates Wacky strategy from variant tf-idf formulas. Respective functions
+ * calculate wqt, wdt, Ld
  *
  * @author bhavy
  */
-public class Wacky_Strategy implements StrategyInterface{
+public class Wacky_Strategy implements StrategyInterface {
 
-    double wdt=0;
-    double length=0;
-    double doclength=0;
-    
+    double wdt = 0;
+    double length = 0;
+    double doclength = 0;
+
     @Override
     public double calculate_wqt(double N, double dft) {
-        double numerator = N - dft; 
-        double denominator = dft; 
-       
-        double rs = log((numerator/denominator));
+        double numerator = N - dft;
+        double denominator = dft;
+
+        double rs = log((numerator / denominator));
         return max(0, rs);
     }
 
-    
     @Override
     public double calculate_Ld(DiskPositionalIndex index, int docId) {
         try {
             double bytesize = index.getByteSize(docId); //need to read from docweights
-            doclength=pow(bytesize,0.5);
+            doclength = pow(bytesize, 0.5);
             return doclength;
         } catch (IOException ex) {
             Logger.getLogger(Wacky_Strategy.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return doclength; 
+        return doclength;
     }
-     @Override
+
+    @Override
     public double get_wdt(double t_fd, DiskPositionalIndex index, int docID) {
         try {
             double numerator = 1 + log(t_fd);
             double ave = index.getAve(docID); //need to read this from docweights
             double denominator = 1 + log(ave);
-            wdt= (numerator/denominator);
+            wdt = (numerator / denominator);
         } catch (IOException ex) {
             Logger.getLogger(Wacky_Strategy.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return wdt; 
+        return wdt;
     }
-    
+
 }

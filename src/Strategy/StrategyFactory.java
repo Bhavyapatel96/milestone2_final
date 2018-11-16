@@ -6,25 +6,24 @@
 package Strategy;
 
 /**
+ * Design pattern to execute proper variant tf-idf formula
  *
  * @author bhavy
  */
 public class StrategyFactory {
-    public StrategyInterface execute(int selection){
-    
-        if(selection==0){
+
+    public StrategyInterface execute(int selection) {
+
+        if (selection == 0) {
             return new DefaultStrategy();
-        }
-        else if(selection==1){
+        } else if (selection == 1) {
             return new TF_IDF_Strategy();
-        }
-        else if(selection==2){
+        } else if (selection == 2) {
             return new OKAPI_Strategy();
-        }
-        else if(selection==3){
+        } else if (selection == 3) {
             return new Wacky_Strategy();
+        } else {
         }
-        else{}
         return null;
     }
 }

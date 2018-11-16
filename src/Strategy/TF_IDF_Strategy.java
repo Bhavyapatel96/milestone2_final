@@ -15,33 +15,35 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * Calculates tf-idf strategy from variant tf-idf formulas. Respective functions
+ * calculate wqt, wdt, Ld
  *
  * @author bhavy
  */
-public class TF_IDF_Strategy implements StrategyInterface{
+public class TF_IDF_Strategy implements StrategyInterface {
 
-    double wdt=0;
-    double length=0;
-    double doclength=0;
-    
+    double wdt = 0;
+    double length = 0;
+    double doclength = 0;
+
     @Override
     public double calculate_wqt(double N, double dft) {
         return log((N / dft));
     }
 
-    
     @Override
     public double calculate_Ld(DiskPositionalIndex index, int docId) {
         try {
-            doclength=index.getL_d(docId);
+            doclength = index.getL_d(docId);
         } catch (IOException ex) {
             Logger.getLogger(TF_IDF_Strategy.class.getName()).log(Level.SEVERE, null, ex);
         }
         return doclength; //value already exist in docweights Ld calculate during indexing
     }
-     @Override
+
+    @Override
     public double get_wdt(double t_fd, DiskPositionalIndex index, int docID) {
         return t_fd;
-        
+
     }
 }
